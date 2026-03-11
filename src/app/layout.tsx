@@ -4,7 +4,7 @@ import Sidebar from '@/components/Sidebar';
 import { AppProvider } from '@/context/AppContext';
 
 export const metadata: Metadata = {
-  title: 'Vision Asset Tracking',
+  title: 'VIZFLEET | Asset Tracking',
   description: 'Track physical assets, devices, and drivers',
 };
 

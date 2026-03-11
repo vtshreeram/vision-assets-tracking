@@ -35,7 +35,7 @@ export default function AssetsPage() {
       header: ({ column }) => {
         return (
           <button
-            className="flex items-center gap-1 hover:text-foreground transition-colors"
+            className="flex items-center gap-1 hover:text-white/80 transition-colors"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             Asset ID
@@ -43,11 +43,19 @@ export default function AssetsPage() {
           </button>
         )
       },
+      meta: {
+        variant: "text",
+        label: "Asset ID",
+      },
     },
     {
       accessorKey: "make",
       header: "Make/Model",
       cell: ({ row }) => `${row.original.make} ${row.original.model}`,
+      meta: {
+        variant: "text",
+        label: "Make/Model",
+      },
     },
     {
       accessorKey: "year",
@@ -62,7 +70,19 @@ export default function AssetsPage() {
         </span>
       ),
       filterFn: (row, id, value) => {
-        return value === "" || row.getValue(id) === value
+        return Array.isArray(value) && value.length > 0
+          ? value.includes(row.getValue(id))
+          : true;
+      },
+      meta: {
+        variant: "select",
+        label: "Status",
+        options: [
+          { label: "In Yard", value: "In Yard" },
+          { label: "In Transit", value: "In Transit" },
+          { label: "At Customer", value: "At Customer" },
+          { label: "Delivered", value: "Delivered" },
+        ],
       },
     },
     {
@@ -157,21 +177,6 @@ export default function AssetsPage() {
       <DataTable 
         columns={columns} 
         data={assets} 
-        searchKey="id" 
-        searchPlaceholder="Filter by Asset ID..."
-        filterComponent={
-          <select 
-            className="block w-full sm:w-auto pl-3 pr-10 py-2 border border-card-border rounded-md leading-5 bg-card focus:outline-none focus:ring-2 focus:ring-primary/50 sm:text-sm"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
-            <option value="">All Status</option>
-            <option value="In Yard">In Yard</option>
-            <option value="In Transit">In Transit</option>
-            <option value="At Customer">At Customer</option>
-            <option value="Delivered">Delivered</option>
-          </select>
-        }
       />
 
       {/* Add Asset Modal */}

@@ -48,7 +48,7 @@ export default function DevicesPage() {
       header: ({ column }) => {
         return (
           <button
-            className="flex items-center gap-1 hover:text-foreground transition-colors"
+            className="flex items-center gap-1 hover:text-white/80 transition-colors"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             Device ID
@@ -56,16 +56,36 @@ export default function DevicesPage() {
           </button>
         )
       },
+      meta: {
+        variant: "text",
+        label: "Device ID",
+      },
     },
     {
       accessorKey: "model",
       header: "Model",
+      meta: {
+        variant: "text",
+        label: "Model",
+      },
     },
     {
       accessorKey: "type",
       header: "Type",
       filterFn: (row, id, value) => {
-        return value === "" || row.getValue(id) === value
+        return Array.isArray(value) && value.length > 0
+          ? value.includes(row.getValue(id))
+          : true;
+      },
+      meta: {
+        variant: "select",
+        label: "Type",
+        options: [
+          { label: "GPS", value: "GPS" },
+          { label: "Camera", value: "Camera" },
+          { label: "Telematics", value: "Telematics" },
+          { label: "Sensor", value: "Sensor" },
+        ],
       },
     },
     {
@@ -75,7 +95,20 @@ export default function DevicesPage() {
         <span className={clsx("px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full border", getStatusStyle(row.getValue("status")))}>
           {row.getValue("status")}
         </span>
-      )
+      ),
+      filterFn: (row, id, value) => {
+        return Array.isArray(value) && value.length > 0
+          ? value.includes(row.getValue(id))
+          : true;
+      },
+      meta: {
+        variant: "select",
+        label: "Status",
+        options: [
+          { label: "Online", value: "Online" },
+          { label: "Offline", value: "Offline" },
+        ],
+      },
     },
     {
       accessorKey: "health",
@@ -84,7 +117,22 @@ export default function DevicesPage() {
         <span className={clsx("px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full border", getHealthStyle(row.getValue("health")))}>
           {row.getValue("health")}
         </span>
-      )
+      ),
+      filterFn: (row, id, value) => {
+        return Array.isArray(value) && value.length > 0
+          ? value.includes(row.getValue(id))
+          : true;
+      },
+      meta: {
+        variant: "select",
+        label: "Health",
+        options: [
+          { label: "Excellent", value: "Excellent" },
+          { label: "Good", value: "Good" },
+          { label: "Fair", value: "Fair" },
+          { label: "Poor", value: "Poor" },
+        ],
+      },
     },
     {
       accessorKey: "assigned_assets",
@@ -161,21 +209,6 @@ export default function DevicesPage() {
       <DataTable 
         columns={columns} 
         data={devices} 
-        searchKey="id" 
-        searchPlaceholder="Filter by Device ID..."
-        filterComponent={
-          <select 
-            className="block w-full sm:w-auto pl-3 pr-10 py-2 border border-card-border rounded-md leading-5 bg-card focus:outline-none focus:ring-2 focus:ring-primary/50 sm:text-sm"
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
-          >
-            <option value="">All Types</option>
-            <option value="GPS">GPS</option>
-            <option value="Camera">Camera</option>
-            <option value="Telematics">Telematics</option>
-            <option value="Sensor">Sensor</option>
-          </select>
-        }
       />
 
       {/* Add Device Modal */}

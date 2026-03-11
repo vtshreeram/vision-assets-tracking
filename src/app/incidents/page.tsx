@@ -34,7 +34,7 @@ export default function IncidentsPage() {
       header: ({ column }) => {
         return (
           <button
-            className="flex items-center gap-1 hover:text-foreground transition-colors"
+            className="flex items-center gap-1 hover:text-white/80 transition-colors"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             ID
@@ -42,13 +42,17 @@ export default function IncidentsPage() {
           </button>
         )
       },
+      meta: {
+        variant: "text",
+        label: "Incident ID",
+      },
     },
     {
       accessorKey: "time",
       header: ({ column }) => {
         return (
           <button
-            className="flex items-center gap-1 hover:text-foreground transition-colors"
+            className="flex items-center gap-1 hover:text-white/80 transition-colors"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             Time
@@ -79,7 +83,18 @@ export default function IncidentsPage() {
         </span>
       ),
       filterFn: (row, id, value) => {
-        return value === "" || row.getValue(id) === value
+        return Array.isArray(value) && value.length > 0
+          ? value.includes(row.getValue(id))
+          : true;
+      },
+      meta: {
+        variant: "select",
+        label: "Severity",
+        options: [
+          { label: "Low", value: "Low" },
+          { label: "Medium", value: "Medium" },
+          { label: "High", value: "High" },
+        ],
       },
     },
     {
@@ -91,7 +106,17 @@ export default function IncidentsPage() {
         </span>
       ),
       filterFn: (row, id, value) => {
-        return value === "" || row.getValue(id) === value
+        return Array.isArray(value) && value.length > 0
+          ? value.includes(row.getValue(id))
+          : true;
+      },
+      meta: {
+        variant: "select",
+        label: "Status",
+        options: [
+          { label: "Open", value: "Open" },
+          { label: "Resolved", value: "Resolved" },
+        ],
       },
     },
     {
@@ -149,32 +174,6 @@ export default function IncidentsPage() {
       <DataTable 
         columns={columns} 
         data={incidents} 
-        searchKey="id" 
-        searchPlaceholder="Filter by Incident ID..."
-        filterComponent={
-          <div className="flex gap-2">
-            <select 
-              className="block w-full sm:w-auto pl-3 pr-10 py-2 border border-card-border rounded-md leading-5 bg-card focus:outline-none focus:ring-2 focus:ring-primary/50 sm:text-sm"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              <option value="">All Status</option>
-              <option value="Open">Open</option>
-              <option value="Resolved">Resolved</option>
-            </select>
-
-            <select 
-              className="block w-full sm:w-auto pl-3 pr-10 py-2 border border-card-border rounded-md leading-5 bg-card focus:outline-none focus:ring-2 focus:ring-primary/50 sm:text-sm"
-              value={severityFilter}
-              onChange={(e) => setSeverityFilter(e.target.value)}
-            >
-              <option value="">All Severity</option>
-              <option value="Low">Low</option>
-              <option value="Medium">Medium</option>
-              <option value="High">High</option>
-            </select>
-          </div>
-        }
       />
     </div>
   );

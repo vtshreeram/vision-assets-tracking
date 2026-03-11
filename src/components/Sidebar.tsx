@@ -35,7 +35,7 @@ export default function Sidebar() {
     <>
       {/* Mobile Header & Toggle */}
       <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-card border-b border-card-border flex items-center justify-between px-4 z-40">
-        <h2 className="text-xl font-bold text-primary">Asset Tracker</h2>
+        <h2 className="text-xl font-bold text-primary tracking-tight">VIZFLEET</h2>
         <button 
           onClick={() => setIsOpen(!isOpen)}
           className="p-2 -mr-2 text-muted-foreground hover:bg-secondary rounded-md"
@@ -58,7 +58,7 @@ export default function Sidebar() {
         isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
       )}>
         <div className="p-5 border-b border-card-border hidden md:block shrink-0">
-          <h2 className="text-xl font-bold text-primary">Asset Tracker</h2>
+          <h2 className="text-xl font-bold text-primary tracking-tight">VIZFLEET</h2>
         </div>
         <nav className="flex-1 overflow-y-auto p-3 mt-16 md:mt-0">
           <ul className="space-y-1">

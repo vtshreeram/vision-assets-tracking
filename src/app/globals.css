@@ -1,51 +1,111 @@
 @import "tailwindcss";
+@plugin "tailwindcss-animate";
 
 @theme {
-  --color-primary: var(--color-teal-600);
-  --color-primary-hover: var(--color-teal-700);
-  --color-primary-active: var(--color-teal-800);
-  --color-primary-foreground: var(--color-white);
+  /* Brand Colors (VizFleet Red) */
+  --color-primary: #e03c31;
+  --color-primary-hover: #cb352b;
+  --color-primary-active: #b52e25;
+  --color-primary-foreground: #ffffff;
 
-  --color-secondary: var(--color-gray-100);
+  /* Shadcn standard mappings */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-card-border: var(--border);
+
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  --color-secondary: var(--secondary);
   --color-secondary-hover: var(--color-gray-200);
-  --color-secondary-foreground: var(--color-gray-900);
+  --color-secondary-foreground: var(--secondary-foreground);
 
-  --color-muted: var(--color-gray-100);
-  --color-muted-foreground: var(--color-gray-500);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
 
-  --color-background: var(--color-gray-50);
-  --color-foreground: var(--color-gray-900);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
 
-  --color-card: var(--color-white);
-  --color-card-foreground: var(--color-gray-900);
-  --color-card-border: var(--color-gray-200);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
 
-  --color-destructive: var(--color-red-500);
-  --color-destructive-foreground: var(--color-white);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
 
   --color-success: var(--color-teal-500);
-  --color-warning: var(--color-orange-500);
+  --color-warning: var(--color-amber-500);
   --color-info: var(--color-blue-500);
   
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
 }
 
 @layer base {
   :root {
-    --background: var(--color-gray-50);
-    --foreground: var(--color-gray-900);
+    --background: #f9fafb; /* gray-50 */
+    --foreground: #111827; /* gray-900 */
+    
+    --card: #ffffff;
+    --card-foreground: #111827;
+    
+    --popover: #ffffff;
+    --popover-foreground: #111827;
+    
+    --secondary: #f3f4f6; /* gray-100 */
+    --secondary-foreground: #111827;
+    
+    --muted: #f3f4f6;
+    --muted-foreground: #6b7280; /* gray-500 */
+    
+    --accent: #f3f4f6;
+    --accent-foreground: #111827;
+    
+    --destructive: #ef4444; /* red-500 */
+    --destructive-foreground: #ffffff;
+
+    --border: #e5e7eb; /* gray-200 */
+    --input: #e5e7eb;
+    --ring: #e03c31; /* vizfleet red */
+
+    --radius: 0.5rem;
   }
 
   .dark {
-    --background: var(--color-gray-900);
-    --foreground: var(--color-gray-50);
-    --color-card: var(--color-gray-800);
-    --color-card-border: var(--color-gray-700);
-    --color-secondary: var(--color-gray-800);
-    --color-secondary-hover: var(--color-gray-700);
-    --color-secondary-foreground: var(--color-gray-50);
-    --color-muted: var(--color-gray-800);
-    --color-muted-foreground: var(--color-gray-400);
+    --background: #111827; /* gray-900 */
+    --foreground: #f9fafb; /* gray-50 */
+    
+    --card: #1f2937; /* gray-800 */
+    --card-foreground: #f9fafb;
+    
+    --popover: #1f2937;
+    --popover-foreground: #f9fafb;
+    
+    --secondary: #374151; /* gray-700 */
+    --secondary-foreground: #f9fafb;
+    
+    --muted: #374151;
+    --muted-foreground: #9ca3af; /* gray-400 */
+    
+    --accent: #374151;
+    --accent-foreground: #f9fafb;
+    
+    --destructive: #ef4444;
+    --destructive-foreground: #f9fafb;
+    
+    --border: #374151; /* gray-700 */
+    --input: #374151;
+    --ring: #e03c31;
+  }
+
+  * {
+    border-color: var(--border);
   }
 
   body {

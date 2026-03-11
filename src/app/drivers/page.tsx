@@ -34,7 +34,7 @@ export default function DriversPage() {
       header: ({ column }) => {
         return (
           <button
-            className="flex items-center gap-1 hover:text-foreground transition-colors"
+            className="flex items-center gap-1 hover:text-white/80 transition-colors"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             Driver Name
@@ -42,10 +42,18 @@ export default function DriversPage() {
           </button>
         )
       },
+      meta: {
+        variant: "text",
+        label: "Driver Name",
+      },
     },
     {
       accessorKey: "license",
       header: "License Number",
+      meta: {
+        variant: "text",
+        label: "License Number",
+      },
     },
     {
       accessorKey: "phone",
@@ -75,7 +83,18 @@ export default function DriversPage() {
         </span>
       ),
       filterFn: (row, id, value) => {
-        return value === "" || row.getValue(id) === value
+        return Array.isArray(value) && value.length > 0
+          ? value.includes(row.getValue(id))
+          : true;
+      },
+      meta: {
+        variant: "select",
+        label: "Status",
+        options: [
+          { label: "On Duty", value: "On Duty" },
+          { label: "Off Duty", value: "Off Duty" },
+          { label: "In Transit", value: "In Transit" },
+        ],
       },
     },
     {
@@ -125,20 +144,6 @@ export default function DriversPage() {
       <DataTable 
         columns={columns} 
         data={drivers} 
-        searchKey="name" 
-        searchPlaceholder="Filter by Driver Name..."
-        filterComponent={
-          <select 
-            className="block w-full sm:w-auto pl-3 pr-10 py-2 border border-card-border rounded-md leading-5 bg-card focus:outline-none focus:ring-2 focus:ring-primary/50 sm:text-sm"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
-            <option value="">All Status</option>
-            <option value="On Duty">On Duty</option>
-            <option value="Off Duty">Off Duty</option>
-            <option value="In Transit">In Transit</option>
-          </select>
-        }
       />
 
       {/* Add Driver Modal */}

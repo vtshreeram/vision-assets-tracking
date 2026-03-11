@@ -34,6 +34,7 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
+  const [isInitialized, setIsInitialized] = useState(false);
   const [assets, setAssets] = useState<Asset[]>(mockData.assets);
   const [devices, setDevices] = useState<Device[]>(mockData.devices);
   const [incidents, setIncidents] = useState<Incident[]>(mockData.incidents);
@@ -46,6 +47,38 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     incidentHistory: [2, 1, 3, 2, 1, 4, 2, 3, 1, 2], // Mocked Jan-Oct
     performanceHistory: [4.5, 4.7, 4.6, 4.8] // Mocked Weeks 1-4
   });
+
+  // Load from local storage on mount
+  React.useEffect(() => {
+    try {
+      const savedData = localStorage.getItem('vision-fleet-data');
+      if (savedData) {
+        const parsed = JSON.parse(savedData);
+        if (parsed.assets) setAssets(parsed.assets);
+        if (parsed.devices) setDevices(parsed.devices);
+        if (parsed.incidents) setIncidents(parsed.incidents);
+        if (parsed.drivers) setDrivers(parsed.drivers);
+        if (parsed.events) setEvents(parsed.events);
+        if (parsed.chartData) setChartData(parsed.chartData);
+      }
+    } catch (e) {
+      console.error("Failed to load from local storage", e);
+    } finally {
+      setIsInitialized(true);
+    }
+  }, []);
+
+  // Save to local storage when core data changes
+  React.useEffect(() => {
+    if (!isInitialized) return;
+    try {
+      localStorage.setItem('vision-fleet-data', JSON.stringify({
+        assets, devices, incidents, drivers, events, chartData
+      }));
+    } catch (e) {
+      console.error("Failed to save to local storage", e);
+    }
+  }, [assets, devices, incidents, drivers, events, chartData, isInitialized]);
 
   const showToast = useCallback((message: string, type: 'success' | 'error' | 'info' = 'info') => {
     const id = Math.random().toString(36).substring(2, 9);
