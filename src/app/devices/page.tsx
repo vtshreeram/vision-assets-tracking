@@ -1,19 +1,22 @@
 'use client';
 
 import { useState } from 'react';
-import { mockData } from '@/lib/data';
-import { Search, Plus, AlertCircle } from 'lucide-react';
+import { useApp } from '@/context/AppContext';
+import { Plus, Activity, ArrowUpDown } from 'lucide-react';
+import { Modal } from '@/components/ui/Modal';
+import { DataTable } from '@/components/ui/data-table';
+import { ColumnDef } from '@tanstack/react-table';
+import { Device, DeviceType, DeviceStatus, DeviceHealth } from '@/lib/data';
 import clsx from 'clsx';
 
 export default function DevicesPage() {
-  const [searchTerm, setSearchTerm] = useState('');
+  const { devices, addDevice, showToast } = useApp();
   const [typeFilter, setTypeFilter] = useState('');
   
-  const filteredDevices = mockData.devices.filter(device => {
-    const matchesSearch = device.id.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          device.model.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = !typeFilter || device.type === typeFilter;
-    return matchesSearch && matchesType;
+  // Modal State
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [newDevice, setNewDevice] = useState({
+    id: '', model: '', type: 'GPS' as DeviceType, serial: '', firmware: '1.0.0', quantity: 1, status: 'Online' as DeviceStatus, health: 'Excellent' as DeviceHealth
   });
 
   const getStatusStyle = (status: string) => {
@@ -32,32 +35,135 @@ export default function DevicesPage() {
     }
   };
 
-  const unassignedCount = mockData.devices.filter(d => d.available > 0 && (!d.assigned_assets || d.assigned_assets.length === 0)).length;
+  const handleHealthCheck = (id: string) => {
+    showToast(`Initiating health check for ${id}...`, 'info');
+    setTimeout(() => {
+      showToast(`Health check complete. ${id} is functioning normally.`, 'success');
+    }, 1500);
+  };
+
+  const columns: ColumnDef<Device>[] = [
+    {
+      accessorKey: "id",
+      header: ({ column }) => {
+        return (
+          <button
+            className="flex items-center gap-1 hover:text-foreground transition-colors"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Device ID
+            <ArrowUpDown className="h-4 w-4" />
+          </button>
+        )
+      },
+    },
+    {
+      accessorKey: "model",
+      header: "Model",
+    },
+    {
+      accessorKey: "type",
+      header: "Type",
+      filterFn: (row, id, value) => {
+        return value === "" || row.getValue(id) === value
+      },
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) => (
+        <span className={clsx("px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full border", getStatusStyle(row.getValue("status")))}>
+          {row.getValue("status")}
+        </span>
+      )
+    },
+    {
+      accessorKey: "health",
+      header: "Health",
+      cell: ({ row }) => (
+        <span className={clsx("px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full border", getHealthStyle(row.getValue("health")))}>
+          {row.getValue("health")}
+        </span>
+      )
+    },
+    {
+      accessorKey: "assigned_assets",
+      header: "Assigned Assets",
+      cell: ({ row }) => {
+        const assets = row.original.assigned_assets;
+        return assets && assets.length > 0 ? assets.join(', ') : <span className="italic text-muted-foreground">Unassigned</span>;
+      }
+    },
+    {
+      accessorKey: "available",
+      header: "Inventory",
+      cell: ({ row }) => (
+        <span className={row.original.available === 0 ? "text-red-500 font-medium" : ""}>
+          {row.original.available}/{row.original.quantity}
+        </span>
+      )
+    },
+    {
+      id: "actions",
+      header: () => <div className="text-right">Actions</div>,
+      cell: ({ row }) => {
+        const device = row.original;
+        return (
+          <div className="flex justify-end gap-2">
+            <button className="text-primary hover:text-primary-hover px-2 py-1 border border-card-border rounded hover:bg-secondary transition-colors text-xs font-medium">View</button>
+            <button 
+              onClick={() => handleHealthCheck(device.id)}
+              className="text-foreground bg-secondary hover:bg-card-border px-2 py-1 rounded border border-card-border transition-colors text-xs flex items-center gap-1 font-medium"
+            >
+              <Activity size={12} />
+              Check
+            </button>
+          </div>
+        )
+      }
+    }
+  ];
+
+  const handleAddSubmit = () => {
+    if (!newDevice.id || !newDevice.model || !newDevice.serial) {
+      showToast('Please fill in all required fields', 'error');
+      return;
+    }
+    if (devices.some(d => d.id === newDevice.id)) {
+      showToast('Device ID already exists', 'error');
+      return;
+    }
+    
+    addDevice({
+      ...newDevice,
+      available: newDevice.quantity,
+      assigned_assets: [],
+      last_active: new Date().toISOString().split('T')[0]
+    });
+    
+    setIsAddModalOpen(false);
+    setNewDevice({ id: '', model: '', type: 'GPS', serial: '', firmware: '1.0.0', quantity: 1, status: 'Online', health: 'Excellent' });
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b border-card-border gap-4">
         <h1 className="text-2xl font-bold">Devices</h1>
-        
-        <div className="flex flex-wrap gap-3 w-full sm:w-auto">
-          <button className="flex items-center gap-2 bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
-            <Plus size={16} />
-            Add Device
-          </button>
-          
-          <div className="relative flex-1 sm:w-64 min-w-[200px]">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search size={16} className="text-muted-foreground" />
-            </div>
-            <input
-              type="text"
-              placeholder="Search devices..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="block w-full pl-10 pr-3 py-2 border border-card-border rounded-md leading-5 bg-card placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 sm:text-sm"
-            />
-          </div>
-          
+        <button 
+          onClick={() => setIsAddModalOpen(true)}
+          className="flex items-center gap-2 bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+        >
+          <Plus size={16} />
+          Add Device
+        </button>
+      </div>
+
+      <DataTable 
+        columns={columns} 
+        data={devices} 
+        searchKey="id" 
+        searchPlaceholder="Filter by Device ID..."
+        filterComponent={
           <select 
             className="block w-full sm:w-auto pl-3 pr-10 py-2 border border-card-border rounded-md leading-5 bg-card focus:outline-none focus:ring-2 focus:ring-primary/50 sm:text-sm"
             value={typeFilter}
@@ -67,89 +173,90 @@ export default function DevicesPage() {
             <option value="GPS">GPS</option>
             <option value="Camera">Camera</option>
             <option value="Telematics">Telematics</option>
+            <option value="Sensor">Sensor</option>
           </select>
-        </div>
-      </div>
+        }
+      />
 
-      {unassignedCount > 0 && (
-        <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-md flex items-start gap-3">
-          <AlertCircle className="text-amber-500 flex-shrink-0 mt-0.5" size={20} />
-          <div>
-            <h3 className="text-sm font-medium text-amber-800">Unassigned Devices</h3>
-            <p className="text-sm text-amber-700 mt-1">
-              You have {unassignedCount} device type{unassignedCount > 1 ? 's' : ''} with available units that can be configured.
-            </p>
+      {/* Add Device Modal */}
+      <Modal 
+        isOpen={isAddModalOpen} 
+        onClose={() => setIsAddModalOpen(false)}
+        title="Register New Device"
+        maxWidth="max-w-lg"
+        footer={
+          <>
+            <button onClick={() => setIsAddModalOpen(false)} className="px-4 py-2 border border-card-border rounded-md text-sm font-medium hover:bg-secondary">Cancel</button>
+            <button onClick={handleAddSubmit} className="px-4 py-2 bg-primary text-white rounded-md text-sm font-medium hover:bg-primary-hover">Register Device</button>
+          </>
+        }
+      >
+        <div className="grid grid-cols-2 gap-4">
+          <div className="col-span-2 sm:col-span-1">
+            <label className="block text-sm font-medium mb-1">Device ID *</label>
+            <input 
+              type="text" 
+              className="w-full p-2 border border-card-border rounded-md bg-card"
+              value={newDevice.id}
+              onChange={e => setNewDevice({...newDevice, id: e.target.value})}
+              placeholder="e.g. D1006"
+            />
+          </div>
+          <div className="col-span-2 sm:col-span-1">
+            <label className="block text-sm font-medium mb-1">Serial Number *</label>
+            <input 
+              type="text" 
+              className="w-full p-2 border border-card-border rounded-md bg-card"
+              value={newDevice.serial}
+              onChange={e => setNewDevice({...newDevice, serial: e.target.value})}
+              placeholder="e.g. SN-8822"
+            />
+          </div>
+          <div className="col-span-2 sm:col-span-1">
+            <label className="block text-sm font-medium mb-1">Model *</label>
+            <input 
+              type="text" 
+              className="w-full p-2 border border-card-border rounded-md bg-card"
+              value={newDevice.model}
+              onChange={e => setNewDevice({...newDevice, model: e.target.value})}
+              placeholder="e.g. GeoTrack Pro"
+            />
+          </div>
+          <div className="col-span-2 sm:col-span-1">
+            <label className="block text-sm font-medium mb-1">Type</label>
+            <select 
+              className="w-full p-2 border border-card-border rounded-md bg-card"
+              value={newDevice.type}
+              onChange={e => setNewDevice({...newDevice, type: e.target.value as DeviceType})}
+            >
+              <option value="GPS">GPS</option>
+              <option value="Camera">Camera</option>
+              <option value="Telematics">Telematics</option>
+              <option value="Sensor">Sensor</option>
+            </select>
+          </div>
+          <div className="col-span-2 sm:col-span-1">
+            <label className="block text-sm font-medium mb-1">Initial Quantity</label>
+            <input 
+              type="number" 
+              className="w-full p-2 border border-card-border rounded-md bg-card"
+              value={newDevice.quantity}
+              onChange={e => setNewDevice({...newDevice, quantity: parseInt(e.target.value)})}
+            />
+          </div>
+          <div className="col-span-2 sm:col-span-1">
+            <label className="block text-sm font-medium mb-1">Status</label>
+            <select 
+              className="w-full p-2 border border-card-border rounded-md bg-card"
+              value={newDevice.status}
+              onChange={e => setNewDevice({...newDevice, status: e.target.value as DeviceStatus})}
+            >
+              <option value="Online">Online</option>
+              <option value="Offline">Offline</option>
+            </select>
           </div>
         </div>
-      )}
-
-      <div className="bg-card border border-card-border rounded-lg shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-card-border">
-            <thead className="bg-secondary/50">
-              <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Device ID</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Model</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Type</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Status</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Health</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Assigned Assets</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Inventory</th>
-                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-card divide-y divide-card-border">
-              {filteredDevices.map((device) => (
-                <tr key={device.id} className="hover:bg-secondary/20 transition-colors">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">{device.id}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{device.model}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">{device.type}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={clsx("px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full border", getStatusStyle(device.status))}>
-                      {device.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={clsx("px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full border", getHealthStyle(device.health))}>
-                      {device.health}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                    {device.assigned_assets && device.assigned_assets.length > 0 ? 
-                      device.assigned_assets.join(', ') : 
-                      <span className="italic">Unassigned</span>
-                    }
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                    <span className={device.available === 0 ? "text-red-500 font-medium" : ""}>
-                      Available: {device.available}/{device.quantity}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <div className="flex justify-end gap-2">
-                      <button className="text-primary hover:text-primary-hover px-2 py-1 border border-card-border rounded hover:bg-secondary transition-colors text-xs">View</button>
-                      {device.available > 0 ? (
-                        <button className="text-white bg-primary hover:bg-primary-hover px-2 py-1 rounded transition-colors text-xs">Assign</button>
-                      ) : (
-                        <button disabled className="text-muted-foreground bg-secondary px-2 py-1 rounded border border-card-border opacity-50 cursor-not-allowed text-xs">No Stock</button>
-                      )}
-                      <button className="text-foreground bg-secondary hover:bg-card-border px-2 py-1 rounded border border-card-border transition-colors text-xs">Health Check</button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              
-              {filteredDevices.length === 0 && (
-                <tr>
-                  <td colSpan={8} className="px-6 py-10 text-center text-muted-foreground">
-                    No devices found matching your criteria.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      </Modal>
     </div>
   );
 }

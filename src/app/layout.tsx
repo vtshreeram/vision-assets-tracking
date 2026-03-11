@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import Sidebar from '@/components/Sidebar';
+import { AppProvider } from '@/context/AppContext';
 
 export const metadata: Metadata = {
   title: 'Vision Asset Tracking',
@@ -15,10 +16,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="flex h-screen overflow-hidden">
-        <Sidebar />
-        <main className="flex-1 overflow-y-auto p-6 md:p-8 bg-background">
-          {children}
-        </main>
+        <AppProvider>
+          <Sidebar />
+          <main className="flex-1 overflow-y-auto p-4 pt-20 md:pt-6 md:p-8 bg-background relative z-0">
+            {children}
+          </main>
+        </AppProvider>
       </body>
     </html>
   );

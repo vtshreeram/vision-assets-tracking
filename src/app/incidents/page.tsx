@@ -1,21 +1,18 @@
 'use client';
 
 import { useState } from 'react';
-import { mockData } from '@/lib/data';
+import { useApp } from '@/context/AppContext';
+import { DataTable } from '@/components/ui/data-table';
+import { ColumnDef } from '@tanstack/react-table';
+import { Incident, IncidentSeverity, IncidentStatus } from '@/lib/data';
+import { CheckCircle2, MessageSquare, RefreshCw, ArrowUpDown } from 'lucide-react';
 import clsx from 'clsx';
-import { ChevronDown, ChevronUp } from 'lucide-react';
 
 export default function IncidentsPage() {
+  const { incidents, resolveIncident, showToast } = useApp();
   const [statusFilter, setStatusFilter] = useState('');
   const [severityFilter, setSeverityFilter] = useState('');
-  const [expandedId, setExpandedId] = useState<string | null>(null);
   
-  const filteredIncidents = mockData.incidents.filter(incident => {
-    const matchesStatus = !statusFilter || incident.status === statusFilter;
-    const matchesSeverity = !severityFilter || incident.severity === severityFilter;
-    return matchesStatus && matchesSeverity;
-  });
-
   const getSeverityStyle = (severity: string) => {
     switch(severity) {
       case 'Low': return 'bg-blue-100 text-blue-800 border-blue-200';
@@ -31,96 +28,154 @@ export default function IncidentsPage() {
       : 'bg-teal-100 text-teal-800 border-teal-200';
   };
 
+  const columns: ColumnDef<Incident>[] = [
+    {
+      accessorKey: "id",
+      header: ({ column }) => {
+        return (
+          <button
+            className="flex items-center gap-1 hover:text-foreground transition-colors"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            ID
+            <ArrowUpDown className="h-4 w-4" />
+          </button>
+        )
+      },
+    },
+    {
+      accessorKey: "time",
+      header: ({ column }) => {
+        return (
+          <button
+            className="flex items-center gap-1 hover:text-foreground transition-colors"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Time
+            <ArrowUpDown className="h-4 w-4" />
+          </button>
+        )
+      },
+      cell: ({ row }) => new Date(row.getValue("time")).toLocaleString(undefined, { 
+        month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+      }),
+    },
+    {
+      accessorKey: "type",
+      header: "Type & Related",
+      cell: ({ row }) => (
+        <div>
+          <div className="text-sm font-medium text-foreground">{row.getValue("type")}</div>
+          <div className="text-xs text-muted-foreground">Related: {row.original.related}</div>
+        </div>
+      )
+    },
+    {
+      accessorKey: "severity",
+      header: "Severity",
+      cell: ({ row }) => (
+        <span className={clsx("px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full border", getSeverityStyle(row.getValue("severity")))}>
+          {row.getValue("severity")}
+        </span>
+      ),
+      filterFn: (row, id, value) => {
+        return value === "" || row.getValue(id) === value
+      },
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) => (
+        <span className={clsx("px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full border", getStatusStyle(row.getValue("status")))}>
+          {row.getValue("status")}
+        </span>
+      ),
+      filterFn: (row, id, value) => {
+        return value === "" || row.getValue(id) === value
+      },
+    },
+    {
+      accessorKey: "notes",
+      header: "Notes",
+      cell: ({ row }) => (
+        <div className="truncate max-w-[200px] lg:max-w-xs xl:max-w-sm" title={row.getValue("notes")}>
+          {row.getValue("notes")}
+        </div>
+      )
+    },
+    {
+      id: "actions",
+      header: () => <div className="text-right">Actions</div>,
+      cell: ({ row }) => {
+        const incident = row.original;
+        return (
+          <div className="flex justify-end gap-2">
+            {incident.status === 'Open' ? (
+              <button 
+                onClick={() => resolveIncident(incident.id)}
+                title="Resolve Incident"
+                className="text-white bg-primary hover:bg-primary-hover p-1.5 rounded transition-colors flex items-center justify-center shadow-sm"
+              >
+                <CheckCircle2 size={16} />
+              </button>
+            ) : (
+              <button 
+                onClick={() => showToast('Reopen functionality requires backend API.', 'error')}
+                title="Reopen Incident"
+                className="text-foreground bg-secondary hover:bg-card-border border border-card-border p-1.5 rounded transition-colors flex items-center justify-center shadow-sm"
+              >
+                <RefreshCw size={16} />
+              </button>
+            )}
+            <button 
+              onClick={() => showToast('Note modal would open here.', 'info')}
+              title="Add Note"
+              className="text-foreground bg-secondary hover:bg-card-border border border-card-border p-1.5 rounded transition-colors flex items-center justify-center shadow-sm"
+            >
+              <MessageSquare size={16} />
+            </button>
+          </div>
+        )
+      }
+    }
+  ];
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b border-card-border gap-4">
         <h1 className="text-2xl font-bold">Incidents</h1>
-        
-        <div className="flex flex-wrap gap-3 w-full sm:w-auto">
-          <select 
-            className="block w-full sm:w-auto pl-3 pr-10 py-2 border border-card-border rounded-md leading-5 bg-card focus:outline-none focus:ring-2 focus:ring-primary/50 sm:text-sm"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
-            <option value="">All Status</option>
-            <option value="Open">Open</option>
-            <option value="Resolved">Resolved</option>
-          </select>
-
-          <select 
-            className="block w-full sm:w-auto pl-3 pr-10 py-2 border border-card-border rounded-md leading-5 bg-card focus:outline-none focus:ring-2 focus:ring-primary/50 sm:text-sm"
-            value={severityFilter}
-            onChange={(e) => setSeverityFilter(e.target.value)}
-          >
-            <option value="">All Severity</option>
-            <option value="Low">Low</option>
-            <option value="Medium">Medium</option>
-            <option value="High">High</option>
-          </select>
-        </div>
       </div>
 
-      <div className="bg-card border border-card-border rounded-lg shadow-sm overflow-hidden flex flex-col">
-        {filteredIncidents.map((incident, i) => {
-          const isExpanded = expandedId === incident.id;
-          return (
-            <div 
-              key={incident.id} 
-              className={clsx(
-                "p-4 border-b border-card-border last:border-0 transition-colors cursor-pointer",
-                isExpanded ? "bg-secondary/50" : "hover:bg-secondary/20"
-              )}
-              onClick={() => setExpandedId(isExpanded ? null : incident.id)}
+      <DataTable 
+        columns={columns} 
+        data={incidents} 
+        searchKey="id" 
+        searchPlaceholder="Filter by Incident ID..."
+        filterComponent={
+          <div className="flex gap-2">
+            <select 
+              className="block w-full sm:w-auto pl-3 pr-10 py-2 border border-card-border rounded-md leading-5 bg-card focus:outline-none focus:ring-2 focus:ring-primary/50 sm:text-sm"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
             >
-              <div className="flex justify-between items-start mb-2">
-                <div className="flex items-center gap-3 flex-wrap">
-                  <span className="font-semibold">{incident.id}</span>
-                  <span className={clsx("px-2.5 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full border", getSeverityStyle(incident.severity))}>
-                    {incident.severity}
-                  </span>
-                  <span className={clsx("px-2.5 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full border", getStatusStyle(incident.status))}>
-                    {incident.status}
-                  </span>
-                </div>
-                <div className="flex items-center gap-3 text-muted-foreground">
-                  <span className="text-sm">{new Date(incident.time).toLocaleString()}</span>
-                  {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                </div>
-              </div>
-              
-              <div className="text-sm">
-                <strong>{incident.type}</strong> - Related: {incident.related}
-              </div>
-              
-              {isExpanded && (
-                <div className="mt-4 pt-4 border-t border-card-border/50 animate-in slide-in-from-top-2">
-                  <p className="text-sm text-muted-foreground mb-4">{incident.notes}</p>
-                  <div className="flex gap-2">
-                    {incident.status === 'Open' ? (
-                      <button className="bg-primary hover:bg-primary-hover text-white px-3 py-1.5 rounded-md text-sm font-medium transition-colors">
-                        Resolve Incident
-                      </button>
-                    ) : (
-                      <button className="bg-secondary hover:bg-card-border border border-card-border text-foreground px-3 py-1.5 rounded-md text-sm font-medium transition-colors">
-                        Reopen
-                      </button>
-                    )}
-                    <button className="bg-secondary hover:bg-card-border border border-card-border text-foreground px-3 py-1.5 rounded-md text-sm font-medium transition-colors">
-                      Add Note
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          );
-        })}
-        
-        {filteredIncidents.length === 0 && (
-          <div className="p-10 text-center text-muted-foreground">
-            No incidents found matching your criteria.
+              <option value="">All Status</option>
+              <option value="Open">Open</option>
+              <option value="Resolved">Resolved</option>
+            </select>
+
+            <select 
+              className="block w-full sm:w-auto pl-3 pr-10 py-2 border border-card-border rounded-md leading-5 bg-card focus:outline-none focus:ring-2 focus:ring-primary/50 sm:text-sm"
+              value={severityFilter}
+              onChange={(e) => setSeverityFilter(e.target.value)}
+            >
+              <option value="">All Severity</option>
+              <option value="Low">Low</option>
+              <option value="Medium">Medium</option>
+              <option value="High">High</option>
+            </select>
           </div>
-        )}
-      </div>
+        }
+      />
     </div>
   );
 }
