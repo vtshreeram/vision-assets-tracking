@@ -1,0 +1,174 @@
+        this.data = {
+            assets: [
+                {
+                    id: 'C001',
+                    make: 'Toyota',
+                    model: 'Camry',
+                    year: 2022,
+                    country: 'India',
+                    status: 'In Yard',
+                    location: 'Yard 1',
+                    assigned_devices: ['D1001', 'D1003'],
+                    current_driver: 'John Singh',
+                    lat: 3.1390,
+                    lng: 101.6869
+                },
+                {
+                    id: 'C002',
+                    make: 'Honda',
+                    model: 'Civic',
+                    year: 2023,
+                    country: 'India',
+                    status: 'In Transit',
+                    location: 'Route A',
+                    assigned_devices: ['D1002', 'D1004'],
+                    current_driver: 'Sarah Lim',
+                    lat: 3.2028,
+                    lng: 101.7238
+                },
+                {
+                    id: 'C003',
+                    make: 'Mazda',
+                    model: 'CX-5',
+                    year: 2024,
+                    country: 'Malaysia',
+                    status: 'In Yard',
+                    location: 'Yard 2',
+                    assigned_devices: ['D1005'],
+                    current_driver: null,
+                    lat: 3.1590,
+                    lng: 101.7069
+                }
+            ],
+            devices: [
+                {
+                    id: 'D1001',
+                    model: 'GeoTrack X',
+                    type: 'GPS',
+                    serial: 'GT-222A',
+                    firmware: '1.2.3',
+                    quantity: 100,
+                    available: 95,
+                    assigned_assets: ['C001'],
+                    status: 'Online',
+                    health: 'Good',
+                    last_active: '2025-10-23'
+                },
+                {
+                    id: 'D1002',
+                    model: 'CamSecure Pro',
+                    type: 'Camera',
+                    serial: 'CS-107B',
+                    firmware: '3.1.9',
+                    quantity: 50,
+                    available: 47,
+                    assigned_assets: ['C002'],
+                    status: 'Online',
+                    health: 'Excellent',
+                    last_active: '2025-10-23'
+                },
+                {
+                    id: 'D1003',
+                    model: 'TeleMax 5G',
+                    type: 'Telematics',
+                    serial: 'TM-501C',
+                    firmware: '2.4.1',
+                    quantity: 80,
+                    available: 78,
+                    assigned_assets: ['C001'],
+                    status: 'Online',
+                    health: 'Good',
+                    last_active: '2025-10-23'
+                },
+                {
+                    id: 'D1004',
+                    model: 'SmartCam HD',
+                    type: 'Camera',
+                    serial: 'SC-889D',
+                    firmware: '1.7.2',
+                    quantity: 60,
+                    available: 58,
+                    assigned_assets: ['C002'],
+                    status: 'Online',
+                    health: 'Good',
+                    last_active: '2025-10-23'
+                },
+                {
+                    id: 'D1005',
+                    model: 'GPS Pro Max',
+                    type: 'GPS',
+                    serial: 'GP-334E',
+                    firmware: '3.0.5',
+                    quantity: 120,
+                    available: 119,
+                    assigned_assets: ['C003'],
+                    status: 'Online',
+                    health: 'Excellent',
+                    last_active: '2025-10-23'
+                }
+            ],
+            drivers: [
+                {
+                    name: 'John Singh',
+                    license: 'MYS123456',
+                    phone: '+60123456789',
+                    safety_score: 4.7,
+                    current_assignment: 'C001',
+                    status: 'On Duty'
+                },
+                {
+                    name: 'Sarah Lim',
+                    license: 'MYS223344',
+                    phone: '+60199887766',
+                    safety_score: 4.9,
+                    current_assignment: 'C002',
+                    status: 'In Transit'
+                }
+            ],
+            events: [
+                {
+                    time: '2025-10-23T09:00:00',
+                    type: 'Movement',
+                    asset: 'C002',
+                    driver: 'Sarah Lim',
+                    details: 'Left Yard 1 en route to customer'
+                },
+                {
+                    time: '2025-10-23T09:10:00',
+                    type: 'Device Assigned',
+                    asset: 'C001',
+                    device: 'D1001',
+                    details: 'Device assigned to asset'
+                }
+            ],
+            incidents: [
+                {
+                    id: 'I-001',
+                    related: 'C002',
+                    type: 'Speeding',
+                    severity: 'Medium',
+                    time: '2025-10-23T10:07:00',
+                    status: 'Open',
+                    notes: 'Asset exceeded speed limit on Route A'
+                },
+                {
+                    id: 'I-002',
+                    related: 'D1002',
+                    type: 'Camera Offline',
+                    severity: 'High',
+                    time: '2025-10-22T16:30:00',
+                    status: 'Resolved',
+                    notes: 'Camera was offline for 12 minutes'
+                }
+            ],
+            kpi_stats: {
+                total_assets: 3,
+                in_yard: 2,
+                in_transit: 1,
+                at_customer: 0,
+                delivered: 0,
+                critical_alerts: 1,
+                devices_online: 5,
+                devices_offline: 0
+            },
+            countries: ['India', 'Malaysia', 'Singapore', 'Thailand', 'Indonesia'],

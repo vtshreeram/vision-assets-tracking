@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asset Tracking System</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="sidebar__header">
+                <h2>Asset Tracker</h2>
+            </div>
+            <ul class="sidebar__menu">
+                <li><button class="sidebar__item active" data-module="dashboard">📊 Dashboard</button></li>
+                <li><button class="sidebar__item" data-module="assets">🚗 Assets</button></li>
+                <li><button class="sidebar__item" data-module="devices">📱 Devices</button></li>
+                <li><button class="sidebar__item" data-module="camera">📹 Camera</button></li>
+                <li><button class="sidebar__item" data-module="incidents">⚠️ Incidents</button></li>
+                <li><button class="sidebar__item" data-module="drivers">👤 Drivers</button></li>
+                <li><button class="sidebar__item" data-module="analytics">📈 Analytics</button></li>
+                <li><button class="sidebar__item" data-module="reports">📋 Reports</button></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Dashboard Module -->
+            <div id="dashboard" class="module active">
+                <div class="module__header">
+                    <h1>Dashboard</h1>
+                </div>
+                
+                <!-- KPI Cards -->
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-card__value" id="total-assets">2</div>
+                        <div class="kpi-card__label">Total Assets</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-card__value" id="in-yard">1</div>
+                        <div class="kpi-card__label">In Yard</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-card__value" id="in-transit">1</div>
+                        <div class="kpi-card__label">In Transit</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-card__value" id="at-customer">0</div>
+                        <div class="kpi-card__label">At Customer</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-card__value" id="delivered">0</div>
+                        <div class="kpi-card__label">Delivered</div>
+                    </div>
+                    <div class="kpi-card alert">
+                        <div class="kpi-card__value" id="critical-alerts">1</div>
+                        <div class="kpi-card__label">Critical Alerts</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-card__value" id="devices-online">2</div>
+                        <div class="kpi-card__label">Devices Online</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-card__value" id="devices-offline">0</div>
+                        <div class="kpi-card__label">Devices Offline</div>
+                    </div>
+                </div>
+
+                <!-- Map and Activity -->
+                <div class="dashboard-content">
+                    <div class="map-container">
+                        <h3>Asset Locations</h3>
+                        <div id="map"></div>
+                    </div>
+                    <div class="dashboard-sidebar">
+                        <div class="activity-stream">
+                            <h3>Recent Activity</h3>
+                            <div class="activity-list" id="activity-list"></div>
+                        </div>
+                        <div class="asset-details-panel" id="asset-details-panel" style="display: none;">
+                            <div class="asset-details-header">
+                                <h3>Asset Details</h3>
+                                <button class="close-details" id="close-asset-details">&times;</button>
+                            </div>
+                            <div class="asset-details-content" id="asset-details-content">
+                                <!-- Asset details will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Assets Module -->
+            <div id="assets" class="module">
+                <div class="module__header">
+                    <h1>Assets</h1>
+                    <div class="module__actions">
+                        <button class="btn btn--primary" id="add-asset-btn">+ Add Asset</button>
+                        <input type="text" class="form-control" id="asset-search" placeholder="Search assets...">
+                        <select class="form-control" id="asset-filter">
+                            <option value="">All Status</option>
+                            <option value="In Yard">In Yard</option>
+                            <option value="In Transit">In Transit</option>
+                            <option value="At Customer">At Customer</option>
+                            <option value="Delivered">Delivered</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Asset ID</th>
+                                <th>Make/Model</th>
+                                <th>Year</th>
+                                <th>Status</th>
+                                <th>Location</th>
+                                <th>Driver</th>
+                                <th>Devices</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="assets-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Devices Module -->
+            <div id="devices" class="module">
+                <div class="module__header">
+                    <h1>Devices</h1>
+                    <div class="module__actions">
+                        <button class="btn btn--primary" id="add-device-btn">+ Add Device</button>
+                        <select class="form-control" id="device-filter">
+                            <option value="">All Types</option>
+                            <option value="Telematics">Telematics</option>
+                            <option value="Camera">Camera</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="banner banner--warning" id="unassigned-devices-banner" style="display: none;">
+                    ⚠️ You have unassigned devices that need to be configured.
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Device ID</th>
+                                <th>Model</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Health</th>
+                                <th>Assigned Assets</th>
+                                <th>Inventory</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="devices-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Camera Module -->
+            <div id="camera" class="module">
+                <div class="module__header">
+                    <h1>Camera Feeds</h1>
+                    <div class="module__actions">
+                        <select class="form-control" id="camera-filter">
+                            <option value="">All Assets</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="camera-grid" id="camera-grid"></div>
+            </div>
+
+            <!-- Incidents Module -->
+            <div id="incidents" class="module">
+                <div class="module__header">
+                    <h1>Incidents</h1>
+                    <div class="module__actions">
+                        <select class="form-control" id="incident-filter">
+                            <option value="">All Status</option>
+                            <option value="Open">Open</option>
+                            <option value="Resolved">Resolved</option>
+                        </select>
+                        <select class="form-control" id="severity-filter">
+                            <option value="">All Severity</option>
+                            <option value="Low">Low</option>
+                            <option value="Medium">Medium</option>
+                            <option value="High">High</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="incidents-list" id="incidents-list"></div>
+            </div>
+
+            <!-- Drivers Module -->
+            <div id="drivers" class="module">
+                <div class="module__header">
+                    <h1>Drivers</h1>
+                    <div class="module__actions">
+                        <button class="btn btn--primary" id="add-driver-btn">+ Add Driver</button>
+                        <select class="form-control" id="driver-filter">
+                            <option value="">All Status</option>
+                            <option value="On Duty">On Duty</option>
+                            <option value="Off Duty">Off Duty</option>
+                            <option value="In Transit">In Transit</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="drivers-grid" id="drivers-grid"></div>
+            </div>
+
+            <!-- Analytics Module -->
+            <div id="analytics" class="module">
+                <div class="module__header">
+                    <h1>Analytics</h1>
+                    <div class="module__actions">
+                        <input type="date" class="form-control" id="start-date">
+                        <input type="date" class="form-control" id="end-date">
+                        <button class="btn btn--primary" id="export-charts">Export PDF</button>
+                    </div>
+                </div>
+                
+                <!-- Analytics KPIs -->
+                <div class="analytics-kpis">
+                    <div class="analytics-card">
+                        <h4>Fleet Utilization</h4>
+                        <div class="metric-value">85%</div>
+                    </div>
+                    <div class="analytics-card">
+                        <h4>Avg Transit Time</h4>
+                        <div class="metric-value">4.2h</div>
+                    </div>
+                    <div class="analytics-card">
+                        <h4>Device Uptime</h4>
+                        <div class="metric-value">99.1%</div>
+                    </div>
+                    <div class="analytics-card">
+                        <h4>Incident Rate</h4>
+                        <div class="metric-value">0.8%</div>
+                    </div>
+                </div>
+
+                <!-- Charts Grid -->
+                <div class="charts-grid">
+                    <div class="chart-container">
+                        <h4>Asset Status Distribution</h4>
+                        <canvas id="asset-status-chart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h4>Device Health</h4>
+                        <canvas id="device-health-chart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h4>Monthly Incidents</h4>
+                        <canvas id="incidents-chart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h4>Driver Performance</h4>
+                        <canvas id="performance-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reports Module -->
+            <div id="reports" class="module">
+                <div class="module__header">
+                    <h1>Reports</h1>
+                    <div class="module__actions">
+                        <button class="btn btn--primary" id="schedule-report">Schedule Report</button>
+                    </div>
+                </div>
+                <div class="reports-grid" id="reports-grid"></div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Global Modal -->
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal" id="modal">
+            <div class="modal__header">
+                <h3 id="modal-title">Modal Title</h3>
+                <button class="modal__close" id="modal-close">&times;</button>
+            </div>
+            <div class="modal__body" id="modal-body">
+                <!-- Dynamic content -->
+            </div>
+            <div class="modal__footer" id="modal-footer">
+                <!-- Dynamic actions -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
