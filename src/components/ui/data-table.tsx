@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import * as React from "react"
+import * as React from "react";
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -12,11 +12,11 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-} from "@tanstack/react-table"
+} from "@tanstack/react-table";
 
-import { DataTablePagination } from "@/components/data-table/data-table-pagination"
-import { DataTableToolbar } from "@/components/data-table/data-table-toolbar"
-import { getColumnPinningStyle } from "@/lib/data-table"
+import { DataTablePagination } from "@/components/data-table/data-table-pagination";
+import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
+import { getColumnPinningStyle } from "@/lib/data-table";
 import {
   Table,
   TableBody,
@@ -24,23 +24,26 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
+} from "@/components/ui/table";
 
 interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[]
-  data: TData[]
-  filterComponent?: React.ReactNode
+  columns: ColumnDef<TData, TValue>[];
+  data: TData[];
+  filterComponent?: React.ReactNode;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
-  filterComponent
+  filterComponent,
 }: DataTableProps<TData, TValue>) {
-  const [sorting, setSorting] = React.useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
-  const [rowSelection, setRowSelection] = React.useState({})
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    [],
+  );
+  const [columnVisibility, setColumnVisibility] =
+    React.useState<VisibilityState>({});
+  const [rowSelection, setRowSelection] = React.useState({});
 
   const table = useReactTable({
     data,
@@ -64,20 +67,21 @@ export function DataTable<TData, TValue>({
         pageSize: 10,
       },
     },
-  })
+  });
 
   return (
     <div className="flex w-full flex-col gap-4">
       {/* We use the advanced Toolbar from tablecn! */}
-      <DataTableToolbar table={table}>
-        {filterComponent}
-      </DataTableToolbar>
-      
+      <DataTableToolbar table={table}>{filterComponent}</DataTableToolbar>
+
       <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
         <Table>
-          <TableHeader className="bg-primary hover:bg-primary">
+          <TableHeader className="bg-gray-50">
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className="hover:bg-transparent border-b-0">
+              <TableRow
+                key={headerGroup.id}
+                className="hover:bg-transparent border-b"
+              >
                 {headerGroup.headers.map((header) => (
                   <TableHead
                     key={header.id}
@@ -85,7 +89,7 @@ export function DataTable<TData, TValue>({
                     style={{
                       ...getColumnPinningStyle({ column: header.column }),
                     }}
-                    className="h-12 text-xs font-semibold uppercase tracking-wider text-white"
+                    className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-gray-900 border-b border-gray-200"
                   >
                     {header.isPlaceholder
                       ? null
@@ -135,8 +139,8 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
-      
+
       <DataTablePagination table={table} />
     </div>
-  )
+  );
 }

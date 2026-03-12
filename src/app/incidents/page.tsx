@@ -34,7 +34,7 @@ export default function IncidentsPage() {
       header: ({ column }) => {
         return (
           <button
-            className="flex items-center gap-1 hover:text-white/80 transition-colors"
+            className="flex items-center gap-1 hover:text-gray-600 transition-colors"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             ID
@@ -52,7 +52,7 @@ export default function IncidentsPage() {
       header: ({ column }) => {
         return (
           <button
-            className="flex items-center gap-1 hover:text-white/80 transition-colors"
+            className="flex items-center gap-1 hover:text-gray-600 transition-colors"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             Time
